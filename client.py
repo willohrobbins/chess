@@ -110,5 +110,5 @@ def human_game(host, port):
 
 if __name__ == "__main__":
     host = '73.166.159.150'
-    port = 65432
+    port = 58501
     human_game(host, port)
