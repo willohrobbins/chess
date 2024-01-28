@@ -1,10 +1,12 @@
 import socket
 import chess
 
+
 MOVE = 0
 GAME = 0
 
 def connect_to_server(host, port):
+    
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((host, port))
     return client_socket
@@ -109,6 +111,6 @@ def human_game(host, port):
     client_socket.close()
 
 if __name__ == "__main__":
-    host = '73.166.159.150'
+    host = '127.0.0.1'
     port = 8001
     human_game(host, port)
