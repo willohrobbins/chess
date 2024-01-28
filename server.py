@@ -27,8 +27,10 @@ class ChessServer:
                     client_socket.sendall(b"Invalid move format")
 
     def broadcast_board(self):
+        fen = self.board.fen()
         for s in self.sockets:
-            s.sendall(str(self.board).encode())
+            s.sendall(fen.encode())
+
 
     def start(self):
         while len(self.sockets) < 2:
@@ -38,5 +40,16 @@ class ChessServer:
             player_color = chess.WHITE if len(self.sockets) == 1 else chess.BLACK
             threading.Thread(target=self.handle_client, args=(client_socket, player_color)).start()
 
+    def stop(self):
+        for s in self.sockets:
+            s.close()
+        self.server_socket.close()
+        print("Server stopped.")
+
 if __name__ == "__main__":
-    ChessServer().start()
+    server = ChessServer()
+    try:
+        server.start()
+    except KeyboardInterrupt:
+        print("Stopping the server...")
+        server.stop()
