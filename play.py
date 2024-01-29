@@ -10,7 +10,7 @@ def print_board(board):
     for i in range(8, 0, -1):
         print(f"{i} |", end=" ")
         for j in range(8):
-            piece = board.piece_at(play.square(j, i-1))
+            piece = board.piece_at(chess.square(j, i-1))
             symbol = piece.symbol() if piece else "."
             print(symbol, end=" ")
         print("|")
@@ -24,7 +24,7 @@ def encode_game_state(board, move, is_white_turn):
         if piece is None:
             return [0, 0, 0, 0]
         binary = [int(bit) for bit in "{0:03b}".format(piece.piece_type)]
-        binary.append(1 if piece.color == play.BLACK else 0)
+        binary.append(1 if piece.color == chess.BLACK else 0)
         return binary
 
     def move_to_binary(move):
@@ -64,11 +64,11 @@ def human_game():
         legal_moves = list(board.legal_moves)
         print("\nPOSSIBLE MOVES:", ", ".join(map(str, legal_moves)))
         
-        if board.turn == play.WHITE:
+        if board.turn == chess.WHITE:
              # Human's turn (White)
             move_uci_white = input("Enter your move: ")
             try:
-                chosen_move = play.Move.from_uci(move_uci_white)
+                chosen_move = chess.Move.from_uci(move_uci_white)
                 if chosen_move not in legal_moves:
                     print("Illegal move. Try again.")
                     continue
@@ -79,7 +79,7 @@ def human_game():
             # Human's turn (Black)
             move_uci_black = input("Enter your move: ")
             try:
-                chosen_move = play.Move.from_uci(move_uci_black)
+                chosen_move = chess.Move.from_uci(move_uci_black)
                 if chosen_move not in legal_moves:
                     print("Illegal move. Try again.")
                     continue
