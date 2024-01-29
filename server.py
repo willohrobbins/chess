@@ -1,52 +1,48 @@
 import socket
 import threading
 import chess
+print(chess.__file__)
 
-class ChessServer:
-    def __init__(self, host='73.166.159.150', port=8001):
-        self.board = chess.Board()
-        self.sockets = []
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.bind((host, port))
-        self.server_socket.listen(2)
-        print(f"Chess Server started on {host}:{port}")
+def client_thread(conn, player, opponent_conn):
+    while True:
+        try:
+            # Receive a move from the player
+            move = conn.recv(1024).decode()
+            if not move:
+                break
 
-    def handle_client(self, client_socket, player_color):
-        while not self.board.is_game_over():
-            if self.board.turn == player_color:
-                client_socket.sendall(str(self.board).encode())
-                move = client_socket.recv(1024).decode().strip()
-                try:
-                    chess_move = chess.Move.from_uci(move)
-                    if chess_move in self.board.legal_moves:
-                        self.board.push(chess_move)
-                        self.broadcast_board()
-                    else:
-                        client_socket.sendall(b"Illegal move")
-                except:
-                    client_socket.sendall(b"Invalid move format")
-                finally:
-                    client_socket.close()
+            # Update the board with the received move
+            try:
+                board.push(chess.Move.from_uci(move))
+            except ValueError:
+                continue  # Invalid move received, skip it
 
-    def broadcast_board(self):
-        fen = self.board.fen()
-        for s in self.sockets:
-            s.sendall(fen.encode())
+            # Send the updated game state to both players
+            game_state = board.fen()
+            conn.sendall(game_state.encode())
+            opponent_conn.sendall(game_state.encode())
 
+        except ConnectionError:
+            break
 
-    def start(self):
-        while len(self.sockets) < 2:
-            client_socket, addr = self.server_socket.accept()
-            print(f"Connection from {addr} established.")
-            self.sockets.append(client_socket)
-            player_color = chess.WHITE if len(self.sockets) == 1 else chess.BLACK
-            threading.Thread(target=self.handle_client, args=(client_socket, player_color)).start()
+    conn.close()
 
-    def stop(self):
-        for s in self.sockets:
-            s.close()
-        self.server_socket.close()
-        print("Server stopped.")
+# Initialize the game board
+board = chess.Board()
 
-if __name__ == "__main__":
-    ChessServer().start
+# Set up the server
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind(('127.0.0.1', 8001))  # Bind to your public IP and port
+server.listen(2)
+
+print("Server started. Waiting for connections...")
+
+player1_conn, _ = server.accept()
+print("Player 1 connected.")
+
+player2_conn, _ = server.accept()
+print("Player 2 connected.")
+
+# Start a thread for each player
+threading.Thread(target=client_thread, args=(player1_conn, "White", player2_conn)).start()
+threading.Thread(target=client_thread, args=(player2_conn, "Black", player1_conn)).start()
