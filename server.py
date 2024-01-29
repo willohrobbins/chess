@@ -49,8 +49,4 @@ class ChessServer:
         print("Server stopped.")
 
 if __name__ == "__main__":
-    try:
-        ChessServer().start
-    except KeyboardInterrupt:
-        print("Stopping the server...")
-        ChessServer.stop()
+    ChessServer().start

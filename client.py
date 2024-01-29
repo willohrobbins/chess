@@ -1,23 +1,8 @@
-import socket
 import chess
-
 
 MOVE = 0
 GAME = 0
 
-def connect_to_server(host, port):
-    
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((host, port))
-    return client_socket
-
-def receive_board_state(client_socket):
-    data = client_socket.recv(4096).decode()
-    board = chess.Board(fen=data)
-    return board
-
-def send_move(client_socket, move):
-    client_socket.sendall(move.encode())
 
 def print_board(board):
     """Prints the chess board in a simple text format."""
@@ -61,12 +46,9 @@ def encode_game_state(board, move, is_white_turn):
     return board_state + turn + encoded_move
 
 
-def human_game(host, port):
-
-    client_socket = connect_to_server(host, port)
-    print("Connected to Chess Server.")
-    
+def human_game():
     global MOVE
+
     board = chess.Board()
     MOVE = 0
 
@@ -75,31 +57,42 @@ def human_game(host, port):
         print("~~~~~~~~~~~~~             MOVE " + str(MOVE) + "                 ~~~~~~~~~~~~~~~~")
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n")
 
-
-        board = receive_board_state(client_socket)
         print("\nCURRENT STATE OF THE BOARD\n")
         print_board(board)
-        print("\nYOUR TURN" if board.turn else "\nOPPONENT'S TURN")
-        
-        if board.turn:
-            legal_moves = list(board.legal_moves)
-            print("\nPOSSIBLE MOVES:", ", ".join(map(str, legal_moves)))
+        print("\nWHITE'S TURN" if board.turn else "\nBLACK'S TURN")
 
-            move_uci = input("Enter your move: ")
+        legal_moves = list(board.legal_moves)
+        print("\nPOSSIBLE MOVES:", ", ".join(map(str, legal_moves)))
+        
+        if board.turn == chess.WHITE:
+             # Human's turn (White)
+            move_uci_white = input("Enter your move: ")
             try:
-                chosen_move = chess.Move.from_uci(move_uci)
-                if chosen_move in legal_moves:
-                    send_move(client_socket, move_uci)
-                else:
+                chosen_move = chess.Move.from_uci(move_uci_white)
+                if chosen_move not in legal_moves:
+                    print("Illegal move. Try again.")
+                    continue
+            except ValueError:
+                print("Invalid input. Please enter a move in UCI format.")
+                continue
+        else:
+            # Human's turn (Black)
+            move_uci_black = input("Enter your move: ")
+            try:
+                chosen_move = chess.Move.from_uci(move_uci_black)
+                if chosen_move not in legal_moves:
                     print("Illegal move. Try again.")
                     continue
             except ValueError:
                 print("Invalid input. Please enter a move in UCI format.")
                 continue
 
-        move_number += 1
+        board.push(chosen_move)
+        print("\nBOARD AFTER MOVE:")
+        print_board(board)
+        MOVE += 1
 
-    #Determine winner
+    # Determine the winner
     if board.is_checkmate():
         winner = "Black" if board.turn == chess.WHITE else "White"
     elif board.is_stalemate() or board.is_insufficient_material() or board.can_claim_draw():
@@ -108,9 +101,7 @@ def human_game(host, port):
         winner = "Game not finished."
 
     print("\nGame over. Winner:", winner)
-    client_socket.close()
 
 if __name__ == "__main__":
-    host = '73.166.159.150'
-    port = 8001
-    human_game(host, port)
+    human_game()
+    main()
