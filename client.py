@@ -111,6 +111,6 @@ def human_game(host, port):
     client_socket.close()
 
 if __name__ == "__main__":
-    host = '127.0.0.1'
+    host = '73.166.159.150'
     port = 8001
     human_game(host, port)

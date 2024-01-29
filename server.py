@@ -25,6 +25,8 @@ class ChessServer:
                         client_socket.sendall(b"Illegal move")
                 except:
                     client_socket.sendall(b"Invalid move format")
+                finally:
+                    client_socket.close()
 
     def broadcast_board(self):
         fen = self.board.fen()
