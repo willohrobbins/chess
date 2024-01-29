@@ -3,7 +3,7 @@ import threading
 import chess
 
 class ChessServer:
-    def __init__(self, host='127.0.0.1', port=8001):
+    def __init__(self, host='73.166.159.150', port=8001):
         self.board = chess.Board()
         self.sockets = []
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
